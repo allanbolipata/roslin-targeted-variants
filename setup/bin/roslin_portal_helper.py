@@ -254,8 +254,7 @@ def check_if_IMPACT(request_file_path):
                 Is_it_IMPACT = True
     return Is_it_IMPACT
 
-def create_meta_clinical_files_new_format(datatype, filepath, study_id):
-    filename = os.path.basename(filepath)
+def create_meta_clinical_files_new_format(datatype, filepath, filename, study_id):
     with open(filepath, 'wb') as output_file: 
         output_file.write('cancer_study_identifier: %s\n' % study_id)
         output_file.write('genetic_alteration_type: CLINICAL\n')
@@ -273,9 +272,6 @@ def create_data_clinical_files_new_format(data_clinical_file):
         header = data[0].keys()
         samples_header = get_samples_header(header)
         patients_header = get_patients_header(header)
-
-        print(header)
-        print(samples_header)
         data_attr = set_attributes(header) 
         samples_file_txt = generate_file_txt(data, data_attr, samples_header)
         patients_file_txt = generate_file_txt(data, data_attr, patients_header)
@@ -494,8 +490,8 @@ if __name__ == '__main__':
     with open(mutation_meta_path,'w') as mutation_meta_path_file:
         yaml.dump(mutation_meta,mutation_meta_path_file,default_flow_style=False, width=float("inf"))
 
-    create_meta_clinical_files_new_format("SAMPLE_ATTRIBUTES", clinical_meta_samples_path, stable_id) 
-    create_meta_clinical_files_new_format("PATIENT_ATTRIBUTES", clinical_meta_patients_path, stable_id)  
+    create_meta_clinical_files_new_format("SAMPLE_ATTRIBUTES", clinical_meta_samples_path, clinical_data_samples_file, stable_id) 
+    create_meta_clinical_files_new_format("PATIENT_ATTRIBUTES", clinical_meta_patients_path, clinical_data_patients_file, stable_id)  
 
     with open(discrete_copy_number_meta_path,'w') as discrete_copy_number_meta_path_file:
         yaml.dump(discrete_copy_number_meta,discrete_copy_number_meta_path_file,default_flow_style=False, width=float("inf"))
