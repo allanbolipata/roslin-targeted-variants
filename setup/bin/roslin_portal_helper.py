@@ -16,6 +16,7 @@ import csv
 import shutil
 import glob
 import logging
+import validateData as vd
 
 # create logger
 logger = logging.getLogger("roslin_portal_helper")
@@ -334,6 +335,22 @@ def generate_file_txt(data, attr, header):
     file_txt = metadata + data_str
     return file_txt
 
+# Replicating parameters expected by validateData.py
+def validate_portal_data(portal_output_directory):
+    logger.info('---------- Running portal validator ----------')
+    logger.info('Study path: ' + portal_output_directory)
+    validator_args = argparse.Namespace(study_directory=portal_output_directory,
+            no_portal_checks=True,
+            url_server=None,
+            portal_info_dir=None,
+            html_table=None,
+            portal_properties=None,
+            error_file=None,
+            verbose=None,
+            relaxed_clinical_definitions=None)
+    exit_status = vd.main_validate(validator_args)
+    return exit_status
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(add_help= True, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--clinical_data',required=True,help='The clinical file located with Roslin manifests')
@@ -509,6 +526,13 @@ if __name__ == '__main__':
         with open(fusion_meta_path,'w') as fusion_meta_path_file:
             yaml.dump(fusion_meta,fusion_meta_path_file,default_flow_style=False, width=float("inf"))
 
-    # Now wait for any of the jobs submitted earlier to complete, before we exit
+    # Now wait for any of the jobs submitted earlier to complete
     wait_for_jobs_to_finish(job_ids, 'Data generation jobs')
+
+    validation_exit_status = validate_portal_data(output_directory) 
+    logging.info("Portal exit status: %i" % validation_exit_status)
+    if validation_exit_status == 0 or validation_exit_status == 3:
+        logger.info("Portal files are valid for upload.")
+    else:
+        logger.info("Problems have occurred; files will not be uploaded to the portal.")
     #os.chdir(current_working_directory)
